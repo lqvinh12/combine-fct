@@ -15,11 +15,11 @@ ws = master_wb.active
 keys_template = get_keys_in_worksheet(ws) # { key: row }
 
 # get columns to copy
-columns_to_copy = ['JK',    # Result JUN_25
-                   'JW',    # Result Review
-                   'KC',    # Topline 7/3
-                   'KL',    # topline review
-                   'KM']    # Action-plan
+columns_to_copy = [('JK', 'v-number'),    # Result JUN_25
+                   ('JW', 'v-string'),    # Result Review
+                   ('KC', 'v-number'),    # Topline 7/3
+                   ('KL', 'v-string'),    # topline review
+                   ('KM', 'v-string')]    # Action-plan
 
 # get all file .xlsx in input folder
 input_files = os.listdir(input_folder)
@@ -40,14 +40,19 @@ for input_file in input_files:
     keys_input = get_keys_in_worksheet(input_ws)
 
     # loop from start_row to total_rows
-    for key in keys_input:
+    for key_id in keys_input:
         for column in columns_to_copy:
-            column_index =  coordinate_to_tuple(column + '1')[1]
+            key_object = keys_input[key_id]
 
-            master_row = keys_template[key]
-            input_row = keys_input[key]
+            if key_object['row_type'] == 'summary' and column[1] == 'v-number':
+                continue
+            else:
+                column_index =  coordinate_to_tuple(column[0] + '1')[1]
 
-            copy_cell_value(ws, master_row, column_index, input_ws, input_row, column_index, logger, input_file)
+                master_row = keys_template[key_id]['row']
+                input_row = keys_input[key_id]['row']
+
+                copy_cell_value(ws, master_row, column_index, input_ws, input_row, column_index, column[1], logger, input_file)
 
 export_file_name = f'output/{timestamp} Topline FCT (combined).xlsx'
 master_wb.save(export_file_name)
