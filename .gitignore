@@ -1,0 +1,13 @@
+input/*
+!input/.gitkeep
+
+output/*
+!output/.gitkeep
+
+logs/*
+!logs/.gitkeep
+
+template/*
+!template/.gitkeep
+
+test.py
