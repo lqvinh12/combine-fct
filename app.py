@@ -4,10 +4,17 @@ from init.app_logger import *
 from init.lib import *
 
 #init
-master_file = 'template/master_fct.xlsx'
+master_file_folder = 'template'
 input_folder = 'input'
 
 # open the workbook
+master_files = os.listdir(master_file_folder)
+try:
+    master_files.remove('.gitkeep')
+except:
+    pass
+logger.debug(f'Master file: {master_files[0]}')
+master_file = os.path.join(master_file_folder, master_files[0])
 master_wb = xl.load_workbook(master_file, data_only=True)
 ws = master_wb.active
 
