@@ -1,4 +1,6 @@
 from openpyxl.utils import coordinate_to_tuple
+import os
+from datetime import datetime
 
 def validate_cell_value(cell, value_type):
     if cell.value is None:
@@ -52,3 +54,44 @@ def get_keys_in_worksheet(ws):
         pass
 
     return keys
+def get_input_files(sharepoint_folder, data_period = None, logger = None):
+    input_files = []
+    if not data_period:
+        data_period = datetime.now().strftime('%Y%m')
+
+    sub_folders_branch_group = os.listdir(sharepoint_folder)
+    try:
+        sub_folders_branch_group.remove('1. DAV')
+    except:
+        pass
+
+    for branch_group in sub_folders_branch_group:
+        branch_folders = os.listdir(os.path.join(sharepoint_folder, branch_group))
+
+        for branch_folder in branch_folders:
+            # check foler exist
+            month_folder = os.path.join(sharepoint_folder,branch_group,branch_folder, data_period)
+            if os.path.exists(month_folder):
+                file_list = os.listdir(month_folder)
+                file_list = [file for file in file_list if file.endswith('.xlsx') and 'FCT' in file]
+                input_files.append(os.path.join(month_folder, file_list[0]))
+                if len(file_list) != 1:
+                    logger.error(f'ERROR ------ {month_folder} has {len(file_list)} file(s)')
+                
+            else:
+                logger.error(f'{month_folder} does not exist')
+    return input_files
+
+def get_master_file(sharepoint_folder, data_period = None):
+    if not data_period:
+        data_period = datetime.now().strftime('%Y%m')
+    sharepoint_folder = os.path.abspath(sharepoint_folder)
+    master_folder = os.path.join(sharepoint_folder, '1. DAV')
+    master_folder = os.path.join(master_folder, data_period)
+
+    master_files = os.listdir(master_folder)
+    for file in master_files:
+        file_upper = file.upper()
+        if file_upper.endswith('.XLSX') and 'FCT' in file_upper and 'MASTER' in file_upper:
+            return os.path.join(master_folder, file)
+    return None

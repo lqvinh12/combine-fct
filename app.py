@@ -4,17 +4,18 @@ from init.app_logger import *
 from init.lib import *
 
 #init
-master_file_folder = 'template'
-input_folder = 'input'
+sharepoint_folder = r'D:\temp\OneDrive_2025-07-02\Forecast meeting\1. FY25'
+sharepoint_folder = sharepoint_folder.replace('\\', '/')
+logger.debug(f'Sharepoint folder: "{sharepoint_folder}"')
 
 # open the workbook
-master_files = os.listdir(master_file_folder)
-try:
-    master_files.remove('.gitkeep')
-except:
-    pass
-logger.debug(f'Master file: {master_files[0]}')
-master_file = os.path.join(master_file_folder, master_files[0])
+master_file = get_master_file(sharepoint_folder, None)
+logger.debug(f'Master file: "{master_file}"')
+
+if not master_file:
+    logger.error('Master file not found')
+    exit()
+
 master_wb = xl.load_workbook(master_file, data_only=True)
 ws = master_wb.active
 
@@ -23,24 +24,23 @@ keys_template = get_keys_in_worksheet(ws) # { key: row }
 
 # get columns to copy
 columns_to_copy = [('JK', 'v-number'),    # Result JUN_25
-                   ('JW', 'v-string'),    # Result Review
-                   ('KC', 'v-number'),    # Topline 7/3
-                   ('KL', 'v-string'),    # topline review
-                   ('KM', 'v-string')]    # Action-plan
+                ('JW', 'v-string'),    # Result Review
+                ('KC', 'v-number'),    # Topline 7/3
+                ('KL', 'v-string'),    # topline review
+                ('KM', 'v-string')]    # Action-plan
 
 # get all file .xlsx in input folder
-input_files = os.listdir(input_folder)
-input_files = [file for file in input_files if '~$' not in file]
-input_files.remove('.gitkeep')
-
+input_files = get_input_files(sharepoint_folder, None, logger)
 logger.debug(f'Total {len(input_files)} files in input folder')
+for file in input_files:
+    logger.debug(f'>>>>>> "{file}"')
+
 
 # loop through each file in input folder
 for input_file in input_files:
-    logger.debug(f'Processing: {input_file}')
+    logger.debug(f'Processing: "{input_file}"')
     # open the input file
-    input_file_path = os.path.join(input_folder, input_file)
-    input_wb = xl.load_workbook(input_file_path, data_only=True)
+    input_wb = xl.load_workbook(input_file, data_only=True)
     input_ws = input_wb.active
 
     # get keys of input file
